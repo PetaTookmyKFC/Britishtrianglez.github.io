@@ -208,16 +208,15 @@ globalThis.NestedGenerator = (data) => {
         }
     }
     function UpdateAttributes(target, value) {
-        if (target.attributes != null && target.attributes != undefined) {
-            for (let att in target.attributes) {
-                delete target.attributes[att];
-            }
-        }
+        // if (target.attributes != null && target.attributes != undefined) {
+        //     for (let att in target.attributes) {
+        //         delete target.attributes[att];
+        //     }
+        // }
 
         target.attributes = new Proxy({}, {
             deleteProperty: function (target, property) {
                 el.removeAttribute(property);
-                console.log("Removing Property", target);
                 delete target[property];
                 return true;
             },
@@ -284,7 +283,7 @@ globalThis.NestedGenerator = (data) => {
                 return true;
             },
             set: function (target, property, value) {
-                console.log("Updating Systems")
+                // console.log("Updating Systems")
 
                 if (value instanceof Function) 
                 {
@@ -298,9 +297,9 @@ globalThis.NestedGenerator = (data) => {
         })
 
         if (value instanceof Object) {
-            console.log("styles is objects ", value);
+            // console.log("styles is objects ", value);
             for (let prop in value) {
-                console.log("Updating styles", prop);
+                // console.log("Updating styles", prop);
                 target.style[prop] = value[prop];
             }
         }

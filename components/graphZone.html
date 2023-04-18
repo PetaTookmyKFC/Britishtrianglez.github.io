@@ -4,11 +4,12 @@
 
 <div id="ContextMenu" style="display:none">
     <input type="text" name="Context_SearchBar" id="Context_SearchBar">
-    <ul id="ContextMenu_List">
-    </ul>
 </div>
 <script>
-    const Context = document.getElementById("ContextMenu");
+    // Simple boolean check to ensure entire page is loaded ( firefox doesn't like checking if consts are declared )
+    let doneInit = false;
+    globalThis.Context = document.getElementById("ContextMenu");
+    // Create Node list and append to Context Menu
     const ContextMenu_List = NestedGenerator(
         {
             type: "ul",
@@ -18,28 +19,68 @@
     )
     Context.appendChild(ContextMenu_List.Element);
     const Context_SearchBar = document.getElementById("Context_SearchBar");
+    // Event listener for keypress on context menu searchbar
     Context_SearchBar.addEventListener("keyup", (event) => {
         event.preventDefault();
+
+        // Handle Escape key press
+        if (event.keyCode == 27)
+        {
+            HideContextMenu();
+            return;
+        }
+        // Selecting using arrowKeys
+        if (event.keyCode == 38) {
+            // Arrowkey UP ( Check isnn't at begining of list )
+            if (ContextMenu_List.attributes.Selected > 0) {
+                SelectNode(ContextMenu_List.attributes.Selected - 1);
+            }
+            return;
+        } else if (event.keyCode == 40) {
+            // ArrowKey Down ( Check isn't at end of list )
+            if (ContextMenu_List.attributes.Selected < ContextMenu_List.value.length - 1) {
+                SelectNode(ContextMenu_List.attributes.Selected + 1);
+            }
+            return;
+        }
+        // Filter nodes in Context Menu based of search
         ContextMenu_List.value = FilterNodes(Context_SearchBar.value)
     });
+    function SelectNode (index) {
+        // Check if the new node exists
+        if (index < 0 || index >= ContextMenu_List.value.length) { 
+            throw Error("Context Menu Outof range");
+            return;
+        }
+        
+        // Check old node exists ( may be removed because of search ) and remove attribute for selection
+        if (ContextMenu_List.attributes.Selected < ContextMenu_List.value.length) {
+            delete ContextMenu_List.value[ContextMenu_List.attributes.Selected].attributes["Selected"];
+        }
+
+        // Set new node as selected and update node list container with new selected node
+        ContextMenu_List.attributes["Selected"] = index;
+        ContextMenu_List.value[index].attributes.Selected = true;
+
+    }
     function ResetGraphContextNodes () {
+        // Clear search filter ( Show all nodes )
         ContextMenu_List.value = FilterNodes();
     }
 
-
-    // availableNodes.forEach(element => {
-    //     console.log(element);
-    // });
-
     function FilterNodes(TextFilter) {
         let foundArray;
+        // Check if to return all the nodes
         if (TextFilter == "" || TextFilter == undefined) {
             foundArray = availableNodes;
         } else {
+            // Filter the node list based on the search query
             foundArray = availableNodes.filter((({ name }) => name.toUpperCase().includes(TextFilter.toUpperCase())));
         }
         // debugger;
         let nodes = [];
+        let index = 0;
+        // Create the node Elements and events
         foundArray.forEach(node => {
             nodes.push({
                 type: "li",
@@ -47,14 +88,25 @@
                 classList: ["NoSelect"],
                 events: {
                     click: (e) => {
-                        console.log('Clicked Function ', e);
+                        // Add OnClick listener for selecting node
+                        console.log(`You Added ${node.name} `, e);
+                    },
+                    mouseover: function (e) {
+                        // On Hover event for changing selected node with mouse
+                        SelectNode(this.attributes.index);
                     }
+                },
+                attributes: {
+                    // Index for selecting node no hover
+                    index: index,
+                    // set selected attribute if selected ( first checks if page is done loading... Firefox don't like non declared consts )
+                    Selected: doneInit ? ( ContextMenu_List.attributes.Selected == index ? true : false) : (index == 0 ? true : false)
                 }
             })
+            index++
         });
         return nodes;
     }
-
 </script>
 <style>
     #ContextMenu {
@@ -82,9 +134,8 @@
         text-align: center;
         padding: 0.1rem;
     }
-
-    #ContextMenu li:hover {
-        background: rgb(200, 200, 200);
+    #ContextMenu li[selected=true] {
+        background: rgb(200,200,200);
     }
 </style>
 
@@ -100,34 +151,36 @@
 
     Graph.addEventListener("contextmenu", (event) => {
         event.preventDefault();
-        
+        // Clear ContextMenu Search bar
         Context_SearchBar.value = "";
         ResetGraphContextNodes();
-
-        
+        // Reset Selected node to first node
+        ContextMenu_List.attributes["Selected"] = 0;
+        ContextMenu_List.value[0].attributes["Selected"] = true;
+        // Move Context menu to mouse cursor and set visibility
         Context.style.display = "block";
         Context.style.top = event.clientY;
         Context.style.left = event.clientX;
         Context.setAttribute("Active", true);
-
+        // Set timeout then focus search bar on context menu
         setTimeout(function() { Context_SearchBar.focus(); }, 1);
     });
 
     Graph.addEventListener("click", (event) => {
         event.preventDefault();
+        // Hide context menu if graph zone is clicked
         if (Context.getAttribute("Active") == "true" ) {
-            Context_SearchBar.value = "";
-            Context.style.display = "none";
-            Context.removeAttribute("Active");
-
+            HideContextMenu();
         }
     });
-
-    // globalThis.Constants.GraphZone.addEventListener("click", (event) => {
-    //         event.preventDefault();
-    //     })
-
-
+    function HideContextMenu () {
+        // Reset Context menu search bar
+        Context_SearchBar.value = "";
+        // hide context menu, set active to false and unfocus the search bar
+        Context.style.display = "none";
+        Context.removeAttribute("Active");
+        Context_SearchBar.blur();
+    }
 </script>
 
 
