@@ -1,0 +1,133 @@
+<div id="GraphCanvas">
+    <h2>Graph Zone</h2>
+</div>
+
+<div id="ContextMenu" style="display:none">
+    <input type="text" name="Context_SearchBar" id="Context_SearchBar">
+    <ul id="ContextMenu_List">
+    </ul>
+</div>
+<script>
+    const Context = document.getElementById("ContextMenu");
+    const ContextMenu_List = NestedGenerator(
+        {
+            type: "ul",
+            id: "ContextMenu_List",
+            value: FilterNodes
+        }
+    )
+    Context.appendChild(ContextMenu_List.Element);
+    const Context_SearchBar = document.getElementById("Context_SearchBar");
+    Context_SearchBar.addEventListener("keyup", (event) => {
+        event.preventDefault();
+        ContextMenu_List.value = FilterNodes(Context_SearchBar.value)
+    });
+    function ResetGraphContextNodes () {
+        ContextMenu_List.value = FilterNodes();
+    }
+
+
+    // availableNodes.forEach(element => {
+    //     console.log(element);
+    // });
+
+    function FilterNodes(TextFilter) {
+        let foundArray;
+        if (TextFilter == "" || TextFilter == undefined) {
+            foundArray = availableNodes;
+        } else {
+            foundArray = availableNodes.filter((({ name }) => name.toUpperCase().includes(TextFilter.toUpperCase())));
+        }
+        // debugger;
+        let nodes = [];
+        foundArray.forEach(node => {
+            nodes.push({
+                type: "li",
+                value: node.name,
+                classList: ["NoSelect"],
+                events: {
+                    click: (e) => {
+                        console.log('Clicked Function ', e);
+                    }
+                }
+            })
+        });
+        return nodes;
+    }
+
+</script>
+<style>
+    #ContextMenu {
+        position: absolute;
+        width: 100px;
+        height: 100px;
+
+        top: 50px;
+        left: 120px;
+    }
+
+    #ContextMenu input {
+        width: 100%;
+        background: rgba(200, 200, 200, 0.4);
+    }
+
+
+    #ContextMenu>ul {
+        list-style: none;
+        margin: 0px;
+        padding: 0px;
+    }
+
+    #ContextMenu li {
+        text-align: center;
+        padding: 0.1rem;
+    }
+
+    #ContextMenu li:hover {
+        background: rgb(200, 200, 200);
+    }
+</style>
+
+<script>
+    const Graph = document.getElementById("GraphCanvas");
+    // globalThis.Constants["GraphZone"] = 
+
+    /**
+     * 
+     *  CONTEXT MENU FUNCTIONS ( SHOW, HIDE, RESET SEARCH )
+     * 
+     */
+
+    Graph.addEventListener("contextmenu", (event) => {
+        event.preventDefault();
+        
+        Context_SearchBar.value = "";
+        ResetGraphContextNodes();
+
+        
+        Context.style.display = "block";
+        Context.style.top = event.clientY;
+        Context.style.left = event.clientX;
+        Context.setAttribute("Active", true);
+
+        setTimeout(function() { Context_SearchBar.focus(); }, 1);
+    });
+
+    Graph.addEventListener("click", (event) => {
+        event.preventDefault();
+        if (Context.getAttribute("Active") == "true" ) {
+            Context_SearchBar.value = "";
+            Context.style.display = "none";
+            Context.removeAttribute("Active");
+
+        }
+    });
+
+    // globalThis.Constants.GraphZone.addEventListener("click", (event) => {
+    //         event.preventDefault();
+    //     })
+
+
+</script>
+
+

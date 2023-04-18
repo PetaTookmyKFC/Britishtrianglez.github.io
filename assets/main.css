@@ -1,0 +1,27 @@
+body {
+    padding: 0px;
+    margin: 0px;
+}
+
+.WindowContainer {
+    /* background: gray; */
+    width: 100%;
+    height: 100%;
+    display: grid;
+
+    grid-template-columns: 5fr minmax(300px, 1fr);
+
+}
+
+.WindowContainer>* {
+    border: solid black 1px;
+}
+
+.NoSelect {
+    -webkit-user-select: none;
+    /* Safari */
+    -ms-user-select: none;
+    /* IE 10 and IE 11 */
+    user-select: none;
+    /* Standard syntax */
+}
